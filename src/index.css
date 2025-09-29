@@ -1,66 +1,96 @@
+@import url('https://fonts.googleapis.com/css2?family=Satoshi:wght@400;500;700;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 10% 3.9%;
+    --radius: 0.5rem;
+  }
+ 
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+  }
+}
+ 
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Satoshi', sans-serif;
+  }
+}
+
 html {
   scroll-behavior: smooth;
 }
 
-/* HeroCards background shadow */
-.shadow {
-  position: absolute;
-  background: hsl(var(--primary) / 0%);
-  border-radius: 24px;
-  rotate: 35deg;
-  z-index: -1;
-  width: 260px;
-  top: 200px;
-  height: 400px;
-  filter: blur(150px);
-  will-change: transform;
-  animation: shadow-slide infinite 4s linear alternate;
-}
-
-@keyframes shadow-slide {
-  from {
-    background: hsl(var(--primary) / 20%);
-    right: 460px;
-  }
+/* --- SCROLL-DRIVEN ANIMATION ENGINE --- */
+/*
+  This keyframe animation doesn't move any elements.
+  Instead, it smoothly animates the value of a custom CSS property
+  from 0 to 280 (the number of frames minus one).
+*/
+@keyframes scrub-frames {
   to {
-    background: hsl(var(--primary) / 80%);
-    right: 160px;
+    --frame-index: 280;
   }
 }
 
-@media (max-width: 1024px) {
-  .shadow {
-    top: 70px;
-  }
+/*
+  This class will be applied to our Hero section by the React component.
+  It tells the browser to apply the 'scrub-frames' animation,
+  but not over time. Instead, the animation's progress is
+  directly linked to the scroll position of the entire page.
+*/
+.scroll-driven-animation-container {
+  /* Set the initial value of our variable */
+  --frame-index: 0;
+  
+  /* Apply the animation */
+  animation: scrub-frames linear forwards;
 
-  @keyframes shadow-slide {
-    from {
-      background: hsl(var(--primary) / 20%);
-      right: 460px;
-    }
-    to {
-      background: hsl(var(--primary) / 50%);
-      right: 160px;
-    }
-  }
-}
-
-@media (max-width: 768px) {
-  .shadow {
-    top: 70px;
-    width: 100px;
-    height: 350px;
-    filter: blur(60px);
-  }
-
-  @keyframes shadow-slide {
-    from {
-      background: hsl(var(--primary) / 20%);
-      right: 280px;
-    }
-    to {
-      background: hsl(var(--primary) / 30%);
-      right: 100px;
-    }
-  }
+  /* This is the magic: Link the animation to the scroll timeline */
+  /* It links the animation progress to the scroll position of the entire page (root) in the vertical direction (block) */
+  animation-timeline: scroll(root block);
 }

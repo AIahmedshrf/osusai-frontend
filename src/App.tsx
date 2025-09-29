@@ -1,6 +1,5 @@
-// استورد المكونات الجديدة هنا
-import { Background } from "./components/background";
-import { DotPattern } from "./components/dot-pattern";
+// 1. استيراد مكون الخلفية الجديد
+import { AuroraBackground } from "./components/AuroraBackground";
 
 // باقي الاستيرادات تبقى كما هي
 import { About } from "./components/About";
@@ -23,13 +22,10 @@ import "./App.css";
 function App() {
   return (
     <>
-      {/* ضع مكونات الخلفية هنا في الأعلى */}
-      <Background />
-      {/* تم تفعيل هذا المكون الآن للحصول على التأثير الكامل */}
-      <DotPattern />
+      {/* 2. استخدام مكون الخلفية الجديد هنا */}
+      <AuroraBackground />
       
       {/* المحتوى الرئيسي للموقع */}
-      {/* أضفنا `relative z-10` للتأكد من أن المحتوى يظهر فوق الخلفية */}
       <div className="relative z-10">
         <Navbar />
         <Hero />
