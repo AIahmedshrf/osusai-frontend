@@ -2,11 +2,14 @@
 import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { buttonVariants } from "./ui/button";
+import { Link } from "react-router-dom"; // Import Link from react-router-dom
 
+// Updated route list to use paths for the router
 const routeList = [
-  { href: "#features", label: "Products" },
-  { href: "#pricing", label: "Pricing" },
-  { href: "#faq", label: "Blog" },
+  { to: "/solutions", label: "Solutions" },
+  { to: "/products", label: "Products" },
+  { to: "/resources", label: "Resources" },
+  // Add other routes here as you build them
 ];
 
 export const Navbar = () => {
@@ -18,27 +21,29 @@ export const Navbar = () => {
         {/* Links on the left for desktop */}
         <div className="hidden md:flex gap-4">
           {routeList.map((route) => (
-            <a
-              href={route.href}
+            // Use Link component here
+            <Link
+              to={route.to}
               key={route.label}
               className={`text-[17px] ${buttonVariants({ variant: "ghost" })}`}
             >
               {route.label}
-            </a>
+            </Link>
           ))}
         </div>
 
-        {/* Logo in the center */}
+        {/* Logo in the center, links to Home */}
         <div className="absolute left-1/2 -translate-x-1/2">
-          <a href="#" className="text-xl font-bold">
-            Adaline
-          </a>
+          {/* Use Link component here for the logo */}
+          <Link to="/" className="text-xl font-bold">
+            Osusai
+          </Link>
         </div>
         
         {/* Buttons on the right for desktop */}
         <div className="hidden md:flex gap-2">
           <a
-            href="#"
+            href="#" // External or special links can remain as 'a' tags
             className={`border ${buttonVariants({ variant: "secondary" })}`}
           >
             Watch Demo
@@ -62,20 +67,15 @@ export const Navbar = () => {
         {isOpen && (
           <div className="md:hidden absolute top-14 left-0 w-full bg-background flex flex-col items-center gap-4 py-4 border-b">
             {routeList.map((route) => (
-              <a href={route.href} key={route.label} onClick={() => setIsOpen(false)}>
+              // Use Link component in mobile menu too
+              <Link to={route.to} key={route.label} onClick={() => setIsOpen(false)}>
                 {route.label}
-              </a>
+              </Link>
             ))}
-             <a
-              href="#"
-              className={`border ${buttonVariants({ variant: "secondary" })}`}
-            >
+             <a href="#" className={`border ${buttonVariants({ variant: "secondary" })}`}>
               Watch Demo
             </a>
-            <a
-              href="#"
-              className={buttonVariants({ variant: "default" })}
-            >
+            <a href="#" className={buttonVariants({ variant: "default" })}>
               Start For Free
             </a>
           </div>

@@ -3,10 +3,10 @@ import { useRef, useLayoutEffect, useState, useEffect } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-// Register the GSAP ScrollTrigger plugin for the fallback
+// Register the GSAP ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
 
-// --- Configuration for the image sequence ---
+// --- CONFIGURATION ---
 const frameCount = 281;
 const imagePath = "/sequence/16x9_281/standard/";
 const imagePrefix = "graded_4K_100_gm_50_1080_3-";
@@ -19,19 +19,37 @@ export const Hero = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const componentRef = useRef<HTMLDivElement>(null);
   const heroContentRef = useRef<HTMLDivElement>(null);
-  
-  const [isCssAnimationSupported, setIsCssAnimationSupported] = useState(true);
 
-  // Check for browser support on component mount
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  // --- RELIABLE SEQUENTIAL PRELOADING LOGIC ---
   useEffect(() => {
-    // CSS.supports is a reliable way to check if the browser understands a property
-    if (typeof window !== "undefined" && !CSS.supports("animation-timeline", "scroll()")) {
-      console.warn("Browser does not support CSS Scroll-Driven Animations. Falling back to GSAP.");
-      setIsCssAnimationSupported(false);
-    }
+    const loadImageSequentially = async () => {
+      for (let i = 0; i < frameCount; i++) {
+        await new Promise<void>((resolve) => {
+          const img = new Image();
+          img.src = currentFrame(i);
+          img.onload = () => {
+            setLoadingProgress(Math.floor(((i + 1) / frameCount) * 100));
+            resolve();
+          };
+          img.onerror = () => {
+            console.error(`Failed to load image: ${img.src}`);
+            resolve();
+          };
+        });
+      }
+      setTimeout(() => setIsLoaded(true), 500);
+    };
+
+    loadImageSequentially();
   }, []);
 
+  // --- GSAP-ONLY ANIMATION SETUP ---
   useLayoutEffect(() => {
+    if (!isLoaded) return;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
     const context = canvas.getContext("2d");
@@ -47,74 +65,57 @@ export const Hero = () => {
       images.push(img);
     }
 
+    // This object will be animated by GSAP
+    const imageSequence = { frame: 0 };
+
     images[0].onload = () => {
       context.drawImage(images[0], 0, 0);
 
-      if (isCssAnimationSupported) {
-        // --- MODERN NATIVE CSS METHOD ---
-        let lastFrame = -1;
-        const animationLoop = () => {
-          if (componentRef.current) {
-            const styles = getComputedStyle(componentRef.current);
-            const frameIndex = Math.round(parseFloat(styles.getPropertyValue("--frame-index")));
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: componentRef.current,
+          start: "top top",
+          end: "+=200%", // Control animation speed by changing this value
+          scrub: 1.5,
+          pin: true,
+        },
+      });
 
-            if (frameIndex !== lastFrame && images[frameIndex]) {
+      // Animate the hero text to fade out
+      tl.to(heroContentRef.current, { opacity: 0 }, 0);
+
+      // Animate the image sequence frames using GSAP
+      tl.to(
+        imageSequence,
+        {
+          frame: frameCount - 1,
+          snap: "frame",
+          ease: "none",
+          onUpdate: () => {
+            if (context && images[Math.round(imageSequence.frame)] && images[Math.round(imageSequence.frame)].complete) {
               context.clearRect(0, 0, canvas.width, canvas.height);
-              context.drawImage(images[frameIndex], 0, 0);
-              lastFrame = frameIndex;
+              context.drawImage(images[Math.round(imageSequence.frame)], 0, 0);
             }
-          }
-          requestAnimationFrame(animationLoop);
-        };
-        requestAnimationFrame(animationLoop);
-
-        // Animate text fade separately
-        gsap.to(heroContentRef.current, {
-            opacity: 0,
-            scrollTrigger: {
-                trigger: componentRef.current,
-                start: 'top top',
-                end: '25% top',
-                scrub: true,
-            }
-        });
-
-      } else {
-        // --- FALLBACK GSAP METHOD ---
-        const imageSequence = { frame: 0 };
-        gsap.timeline({
-          scrollTrigger: {
-            trigger: componentRef.current,
-            start: "top top",
-            end: "+=200%",
-            scrub: 1.5,
-            pin: true,
           },
-        })
-        .to(heroContentRef.current, { opacity: 0, duration: 0.5 }, 0)
-        .to(imageSequence, {
-            frame: frameCount - 1,
-            snap: "frame",
-            ease: "none",
-            duration: 1,
-            onUpdate: () => {
-              if (context && images[Math.round(imageSequence.frame)]) {
-                context.clearRect(0, 0, canvas.width, canvas.height);
-                context.drawImage(images[Math.round(imageSequence.frame)], 0, 0);
-              }
-            },
-          }, 0);
-      }
+        },
+        0 // Start at the same time
+      );
     };
-  }, [isCssAnimationSupported]);
+  }, [isLoaded]);
 
   return (
-    // We apply the CSS class only if the feature is supported
     <section 
       ref={componentRef} 
-      className={`relative h-[250vh] w-full overflow-hidden ${isCssAnimationSupported ? 'scroll-driven-animation-container' : ''}`}
+      className="relative w-full"
     >
-      <div className="sticky top-0 h-screen w-full">
+      {!isLoaded && (
+        <div className="loading-overlay">
+          <div className="loading-text">{loadingProgress}</div>
+        </div>
+      )}
+
+      {/* The `h-screen` makes the section take up the full viewport height */}
+      <div className={`h-screen w-full transition-opacity duration-500 ${isLoaded ? 'opacity-100' : 'opacity-0'}`}>
         <canvas ref={canvasRef} className="h-full w-full object-cover"></canvas>
         <div
           ref={heroContentRef}
